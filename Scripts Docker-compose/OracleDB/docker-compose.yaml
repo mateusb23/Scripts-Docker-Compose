@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  database:
+    image: gvenzl/oracle-xe:18
+    container_name: oracle
+    environment:
+      - ORACLE_PASSWORD=server2023
+    volumes:
+      - type: volume
+        source: oradata
+        target: /opt/oracle/oradata
+    ports:
+      - 1521:1521
+    networks:
+      - dbnet
+    healthcheck:
+      test: sql -L -S sys/Welcome_1@localhost:1521/XEPDB1 as sysdba < /dev/null |grep 'ORA-'; if [[ $$? == 1 ]]; then echo 0; else echo 1; fi
+      interval: 1m
+      timeout: 10s
+      retries: 20
+      start_period: 40s
+networks:
+  dbnet:
+volumes:
+   oradata:
+     driver: local
+     driver_opts:
+       type: none
+       device: $PWD/oradata
+       o: bind
